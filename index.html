@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JDP SUPREME - MELL 01</title>
+    
+    <!-- CORE ASSETS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --jdp-red: #ff0000;
+            --jdp-pink: #ff007f;
+            --jdp-dark: #080808;
+            --jdp-panel: #121212;
+            --jdp-green: #25d366;
+            --jdp-gold: #ffd700;
+        }
+
+        /* ANIMAÇÕES SUPREME */
+        @keyframes pulsoRosaJDP {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 127, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(255, 0, 127, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 0, 127, 0); }
+        }
+
+        @keyframes vibrarBotao {
+            0%, 2%, 4%, 6%, 100% { transform: scale(1); }
+            1%, 3%, 5% { transform: scale(1.05) rotate(1deg); }
+            2.5%, 4.5% { transform: scale(1.05) rotate(-1deg); }
+        }
+
+        @keyframes luzRaio {
+            0% { left: 150%; }
+            100% { left: -150%; }
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--jdp-dark);
+            color: white;
+            margin: 0;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+            user-select: none;
+        }
+
+        /* BARRA DE PROGRESSO TURBO JDP */
+        #progress-jdp {
+            position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+            background: linear-gradient(90deg, var(--jdp-red), var(--jdp-pink));
+            z-index: 10000; transition: 0.3s;
+        }
+
+        /* HEADER SUPREME */
+        .header-mell {
+            background: #000;
+            padding: 10px 15px;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--jdp-red); letter-spacing: 5px; cursor: pointer; }
+        
+        .header-nav-main { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .nav-btn { position: relative; font-size: 24px; color: #65676b; flex: 1; text-align: center; cursor: pointer; padding-bottom: 10px; }
+        .nav-btn.active { color: var(--jdp-gold); border-bottom: 3px solid var(--jdp-gold); }
+        .badge { position: absolute; top: -8px; right: 10px; background: #ff0000; color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 10px; border: 2px solid #000; }
+
+        /* SEÇÕES DE CONTEÚDO */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* STORIES & FEED */
+        .stories-outer { padding: 15px 5px; overflow-x: auto; display: flex; gap: 10px; scrollbar-width: none; background: #000; position: sticky; top: 110px; z-index: 4000; }
+        .story-card { min-width: 100px; height: 150px; background: #222; border-radius: 12px; position: relative; overflow: hidden; flex-shrink: 0; border: 1px solid #333; }
+        .story-bg { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        .story-profile { position: absolute; top: 10px; left: 10px; width: 35px; height: 35px; border-radius: 50%; border: 3px solid var(--jdp-red); overflow: hidden; z-index: 2; }
+        .story-profile img { width: 100%; height: 100%; object-fit: cover; }
+        .story-name { position: absolute; bottom: 8px; left: 8px; right: 8px; font-size: 11px; font-weight: bold; z-index: 2; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+
+        .feed-container { max-width: 500px; margin: 0 auto; padding: 15px; }
+        .post-card { background: var(--jdp-panel); border-radius: 24px; margin-bottom: 25px; border: 1px solid #222; overflow: hidden; position: relative; }
+
+        /* BOTÃO LILÁS JDP (FEED) */
+        .btn-action {
+            background: #9933ff !important;
+            position: relative;
+            overflow: hidden;
+            border: none;
+            color: white;
+            font-weight: 800;
+            padding: 18px;
+            margin: 15px;
+            border-radius: 12px;
+            width: calc(100% - 30px);
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(153, 51, 255, 0.4);
+            animation: vibrarBotao 20s infinite;
+        }
+        .btn-action::after {
+            content: ''; position: absolute; top: 0; left: -150%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transform: skewX(-25deg); animation: luzRaio 4s infinite;
+        }
+
+        /* BOTÃO CORAÇÃO VIBRANTE (ROBÔ DE VÍDEO) */
+        .btn-heart-vibrant {
+            position: absolute; bottom: 20px; right: 20px;
+            width: 65px; height: 65px; background: var(--jdp-pink);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; color: white; border: none;
+            box-shadow: 0 0 20px var(--jdp-pink);
+            animation: pulsoRosaJDP 1.5s infinite;
+            cursor: pointer; z-index: 100;
+        }
+
+        /* VIDEO CARD */
+        .video-card { position: relative; background: #000; border-radius: 20px; overflow: hidden; margin-bottom: 20px; border: 1px solid #333; }
+        .video-card video { width: 100%; aspect-ratio: 9/16; object-fit: cover; display: block; }
+
+        /* MOTOR DE BUSCA UI */
+        .search-area-jdp { padding: 10px 15px; background: #000; margin-bottom: 15px; }
+        .search-box-jdp { display: flex; background: #151515; border-radius: 12px; padding: 5px 15px; align-items: center; border: 1px solid #222; }
+        .search-box-jdp input { background: none; border: none; color: white; padding: 12px; width: 100%; font-size: 14px; }
+        .search-box-jdp i { color: var(--jdp-red); }
+
+        /* WHATSAPP SPLASH */
+        #wa-transition {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b141a; z-index: 10000; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .wa-logo { font-size: 70px; color: #25d366; margin-bottom: 25px; }
+        .wa-loader { width: 220px; height: 3px; background: #233138; border-radius: 5px; overflow: hidden; }
+        .wa-bar { width: 0%; height: 100%; background: #25d366; transition: 3s linear; }
+
+        /* ESCRITORIO JDP */
+        #escritorio-jdp { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 11000; padding: 20px; overflow-y: auto; }
+        .admin-card { background: #111; padding: 20px; border-radius: 15px; border: 1px solid #333; margin-bottom: 20px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: #fff; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+    <div id="progress-jdp"></div>
+
+    <header class="header-mell">
+        <div class="header-top">
+            <div class="logo">MELL 01</div>
+            <div id="btn-secret" onclick="acessoEscritorio()" style="width:40px; height:40px;"></div>
+        </div>
+        <div class="header-nav-main">
+            <div class="nav-btn active" onclick="mudarAba('home', this)">
+                <i class="fas fa-home"></i>
+                <span class="badge">15+</span>
+            </div>
+            <div class="nav-btn" onclick="mudarAba('users', this)">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="nav-btn" onclick="abrirWhatsAppSistema()">
+                <i class="fas fa-comment-dots"></i>
+            </div>
+            <div class="nav-btn" id="nav-video" onclick="ativarRoboVideo(this)">
+                <i class="fas fa-play-circle"></i>
+                <span class="badge">NEW</span>
+            </div>
+            <div class="nav-btn" onclick="mudarAba('notificacao', this)">
+                <i class="fas fa-bell"></i>
+                <span class="badge" id="badge-notif">0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ABA 1: HOME -->
+    <section id="view-home" class="view-section active">
+        <div class="stories-outer" id="stories-container"></div>
+        <div id="feed" class="feed-container"></div>
+    </section>
+
+    <!-- ABA 2: USERS -->
+    <section id="view-users" class="view-section">
+        <div class="feed-container" id="elite-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"></div>
+    </section>
+
+    <!-- ABA 4: VÍDEO -->
+    <section id="view-video" class="view-section">
+        <div class="search-area-jdp">
+            <div class="search-box-jdp">
+                <i class="fas fa-bolt"></i>
+                <input type="text" id="input-pesquisa-jdp" placeholder="PESQUISAR NO MOTOR JDP..." onkeyup="if(event.key==='Enter') MaquinaJDP.pesquisarConteudo()">
+            </div>
+        </div>
+        <div class="feed-container" id="video-robot-container"></div>
+    </section>
+
+    <!-- ABA 5: NOTIFICAÇÕES -->
+    <section id="view-notificacao" class="view-section">
+        <div class="feed-container">
+            <h3 style="color: var(--jdp-gold);">CENTRAL DE ALERTAS JDP</h3>
+            <div id="lista-alertas"></div>
+        </div>
+    </section>
+
+    <!-- WHATSAPP SPLASH -->
+    <div id="wa-transition">
+        <i class="fab fa-whatsapp wa-logo"></i>
+        <div style="margin-bottom: 15px; font-weight: bold; color: #e9edef;">INICIANDO CONVERSA...</div>
+        <div class="wa-loader"><div class="wa-bar" id="wa-bar"></div></div>
+    </div>
+
+    <!-- ESCRITORIO JDP -->
+    <div id="escritorio-jdp">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+            <h2 style="color: var(--jdp-red); margin:0;">ESCRITÓRIO JDP</h2>
+            <button onclick="document.getElementById('escritorio-jdp').style.display='none'" style="background:#222; color:white; border:none; padding:10px 20px; border-radius:8px;">SAIR</button>
+        </div>
+        <div class="admin-card">
+            <input type="text" id="adm-nome" placeholder="Nome">
+            <input type="text" id="adm-whats" placeholder="WhatsApp">
+            <input type="text" id="adm-f1" placeholder="Foto Capa">
+            <input type="text" id="adm-video" placeholder="Vídeo MP4">
+            <button class="btn-pub" onclick="salvarGarota()" style="background: var(--jdp-red); color:white; padding:15px; width:100%; border:none; border-radius:8px; font-weight:bold;">PUBLICAR</button>
+        </div>
+        <div id="listaGarotas"></div>
+    </div>
+
+    <script>
+        /* ================================================================
+           MOTOR DE PROCESSAMENTO JDP INDUSTRIAL - KERNEL HELENA
+           ================================================================ */
+        const MaquinaJDP = {
+            motorDeBusca: function(link) {
+                if (!link || link.trim() === "") return `<div style="color:#333;">Vazio</div>`;
+                const url = link.toLowerCase();
+                if (url.includes('mp4') || url.includes('mov') || url.includes('webm')) {
+                    return `<video class="video-item-jdp" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; border-radius:15px;"><source src="${link}" type="video/mp4"></video>`;
+                }
+                return `<img src="${link}" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:15px;">`;
+            },
+            ativarTurbo: function() {
+                const barra = document.getElementById('progress-jdp');
+                barra.style.width = '100%';
+                setTimeout(() => {
+                    barra.style.opacity = '0';
+                    setTimeout(() => { barra.style.width = '0%'; barra.style.opacity = '1'; }, 400);
+                }, 800);
+            },
+            pesquisarConteudo: function() {
+                const termo = document.getElementById('input-pesquisa-jdp').value;
+                if(termo.length < 3) return;
+                this.ativarTurbo();
+                const container = document.getElementById('video-robot-container');
+                container.innerHTML = `
+                    <div class="video-card" style="height:80vh;">
+                        <div style="position:absolute; top:50%; width:100%; text-align:center; color:var(--jdp-red); font-weight:bold; z-index:10;">
+                            MOTOR JDP BUSCANDO: ${termo.toUpperCase()}
+                        </div>
+                        <iframe src="https://www.bing.com/videos/search?q=${encodeURIComponent(termo)}&qft=+filterui:duration-short&FORM=VRFLTR" 
+                                style="width:100%; height:100%; border:none;"></iframe>
+                    </div>
+                `;
+            }
+        };
+
+        // CONFIGURAÇÃO FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0l40yfrbqlm3OzD2HlIaDkmwLNgdlivI",
+            authDomain: "mell-db7cb.firebaseapp.com",
+            projectId: "mell-db7cb",
+            storageBucket: "mell-db7cb.firebasestorage.app",
+            messagingSenderId: "453957206240",
+            appId: "1:453957206240:web:ccc18253dd893af9d35085"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let globalData = [];
+        let lastCount = localStorage.getItem('jdp_count') || 0;
+
+        function initKernel() {
+            db.collection("garotas").orderBy("dataCriacao", "desc").onSnapshot(snap => {
+                globalData = [];
+                snap.forEach(doc => globalData.push({id: doc.id, ...doc.data()}));
+                renderHome();
+            });
+        }
+
+        // LÓGICA DE SEGURANÇA JDP (CHEQUE-MATE)
+        function conectarWhatsApp(nome, whats) {
+            const usuarioVerificado = localStorage.getItem("usuarioVerificado");
+            if (usuarioVerificado === "sim") {
+                executarSplashWhatsApp(nome);
+            } else {
+                exibirModalCadastro(nome);
+            }
+        }
+
+        function exibirModalCadastro(nomeGarota) {
+            const modal = `
+                <div id="modal-cadastro" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:20000; display:flex; align-items:center; justify-content:center; color:white; padding:20px; font-family:sans-serif;">
+                    <div style="background:#111; border:2px solid #00ff00; padding:25px; border-radius:20px; text-align:center; max-width:350px;">
+                        <h2 style="color:#00ff00; margin-top:0;">SEGURANÇA JDP</h2>
+                        <p>Para falar sobre <b>${nomeGarota}</b>, você precisa de um <b>Cadastro Real</b> com Facial e Documento.</p>
+                        <button onclick="irParaTelaCadastro()" style="width:100%; padding:18px; background:#00ff00; color:black; font-weight:bold; border:none; border-radius:10px; font-size:16px; margin-bottom:15px;">FAZER CADASTRO AGORA</button>
+                        <button onclick="document.getElementById('modal-cadastro').remove()" style="background:none; border:none; color:#555; font-size:13px; text-decoration:underline;">Continuar apenas olhando</button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        function irParaTelaCadastro() {
+            document.getElementById('modal-cadastro').innerHTML = `
+                <div style="background:#111; border:2px solid #00ff00; padding:20px; border-radius:20px; text-align:center; max-width:400px; width:90%;">
+                    <h3 style="color:#00ff00;">BIOMETRIA OBRIGATÓRIA</h3>
+                    <div id="area-facial" style="margin-bottom:20px;">
+                        <div id="preview-facial" style="width:120px; height:120px; background:#222; border-radius:50%; margin:auto; border:2px solid #333; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-user" style="font-size:40px; color:#444;"></i>
+                        </div>
+                        <input type="file" accept="image/*" capture="user" id="input-facial" style="display:none;" onchange="visualizarFoto(this, 'preview-facial')">
+                        <button onclick="document.getElementById('input-facial').click()" style="margin-top:10px; background:#00ff00; color:black; border:none; padding:8px 15px; border-radius:5px; font-weight:bold;">1. TIRAR SELFIE</button>
+                    </div>
+                    <div id="area-doc" style="margin-bottom:20px;">
+                        <div id="preview-doc" style="width:200px; height:120px; background:#222; border-radius:10px; margin:auto; border:2px solid #333; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                            <i class="fas fa-id-card" style="font-size:40px; color:#444;"></i>
+                        </div>
+                        <input type="file" accept="image/*" capture="environment" id="input-doc" style="display:none;" onchange="visualizarFoto(this, 'preview-doc')">
+                        <button onclick="document.getElementById('input-doc').click()" style="margin-top:10px; background:#333; color:white; border:1px solid #00ff00; padding:8px 15px; border-radius:5px;">2. FOTO DO DOCUMENTO</button>
+                    </div>
+                    <button onclick="enviarParaEscritorioJDP()" style="width:100%; padding:15px; background:white; color:black; font-weight:bold; border:none; border-radius:10px; font-size:16px;">FINALIZAR VERIFICAÇÃO</button>
+                </div>
+            `;
+        }
+
+        function visualizarFoto(input, idDestino) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const container = document.getElementById(idDestino);
+                    container.innerHTML = `<img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">`;
+                    container.style.border = "2px solid #00ff00";
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function enviarParaEscritorioJDP() {
+            if(!document.getElementById('input-facial').files[0] || !document.getElementById('input-doc').files[0]) {
+                alert("Engenheiro, o sistema exige as duas fotos!");
+                return;
+            }
+            localStorage.setItem("usuarioVerificado", "sim");
+            alert("IDENTIDADE ENVIADA! Sistema liberado.");
+            location.reload();
+        }
+
+        function executarSplashWhatsApp(nome) {
+            const splash = document.getElementById('wa-transition');
+            const bar = document.getElementById('wa-bar');
+            splash.style.display = 'flex';
+            bar.style.width = '0%';
+            setTimeout(() => bar.style.width = '100%', 50);
+            setTimeout(() => {
+                window.location.href = `https://wa.me/559284846058?text=Olá, sou cliente verificado e tenho interesse na profissional ${nome}.`;
+            }, 3200);
+        }
+
+        // NAVEGAÇÃO E RENDERS
+        function mudarAba(aba, btn) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('view-' + aba).classList.add('active');
+            btn.classList.add('active');
+            if(aba === 'users') renderElite();
+        }
+
+        function renderHome() {
+            const stories = document.getElementById('stories-container');
+            const feed = document.getElementById('feed');
+            stories.innerHTML = globalData.map(g => `
+                <div class="story-card">
+                    <div class="story-profile"><img src="${g.midias[0]}"></div>
+                    <img src="${g.midias[0]}" class="story-bg">
+                    <div class="story-name">${g.nome}</div>
+                </div>
+            `).join('');
+            feed.innerHTML = globalData.map(g => `
+                <div class="post-card">
+                    <div style="padding:15px; font-weight:800; color:var(--jdp-red);">JDP INDUSTRIAL // ELITE</div>
+                    <div style="width:100%; aspect-ratio:1/1;">${MaquinaJDP.motorDeBusca(g.midias[0])}</div>
+                    <button class="btn-action" onclick="conectarWhatsApp('${g.nome}', '${g.whats}')">
+                        <i class="fab fa-whatsapp"></i> ACESSAR PASTA PRIVADA
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function renderElite() {
+            const grid = document.getElementById('elite-grid');
+            grid.innerHTML = globalData.map(g => `
+                <div style="background:#111; border-radius:10px; overflow:hidden; border:1px solid #333;" onclick="conectarWhatsApp('${g.nome}', '${g.whats}')">
+                    <img src="${g.midias[0]}" style="width:100%; aspect-ratio:1/1; object-fit:cover;">
+                    <div style="padding:10px; font-size:12px; font-weight:bold; text-align:center;">${g.nome.toUpperCase()}</div>
+                </div>
+            `).join('');
+        }
+
+        function ativarRoboVideo(btn) {
+            mudarAba('video', btn);
+            const container = document.getElementById('video-robot-container');
+            const videos = globalData.filter(g => g.midias[3] && g.midias[3] !== "");
+            container.innerHTML = videos.map(g => `
+                <div class="video-card">
+                    ${MaquinaJDP.motorDeBusca(g.midias[3])}
+                    <div style="position:absolute; top:15px; left:15px; background:rgba(0,0,0,0.8); padding:5px 15px; border-radius:20px; border:1px solid var(--jdp-gold); font-size:12px;">${g.nome}</div>
+                    <button class="btn-heart-vibrant" onclick="conectarWhatsApp('${g.nome}', '${g.whats}')">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function abrirWhatsAppSistema() {
+            window.open("https://wa.me/559284846058?text=Olá JDP, quero informações.", "_blank");
+        }
+
+        function acessoEscritorio() {
+            if(prompt("ACESSO RESTRITO JDP:") === "drkling2025") document.getElementById('escritorio-jdp').style.display = 'block';
+        }
+
+        function salvarGarota() {
+            const d = {
+                nome: document.getElementById('adm-nome').value,
+                whats: document.getElementById('adm-whats').value,
+                midias: [document.getElementById('adm-f1').value, "", "", document.getElementById('adm-video').value],
+                dataCriacao: new Date()
+            };
+            db.collection("garotas").add(d).then(() => location.reload());
+        }
+
+        initKernel();
+    </script>
+</body>
+</html>
